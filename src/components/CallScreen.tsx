@@ -6,6 +6,7 @@ import type { FactKey } from '../data/partnersCall/persona';
 import {
   createCall,
   chooseBeatOption,
+  continueCall,
   askDiscoveryQuestion,
   finishDiscovery,
   selectAsks,
@@ -158,6 +159,13 @@ export function CallScreen({ difficulty, onExit, onFinish }: Props) {
             className="w-full rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 text-sm transition"
           >
             See results
+          </button>
+        ) : state.resolved ? (
+          <button
+            onClick={() => setState(continueCall(state))}
+            className="w-full rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 text-sm transition"
+          >
+            Next
           </button>
         ) : state.pending.kind === 'beat' ? (
           <div className="flex flex-col gap-2">

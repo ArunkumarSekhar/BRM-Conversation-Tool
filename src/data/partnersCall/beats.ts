@@ -85,7 +85,7 @@ export function openingBeat(persona: PartnerPersona): Beat {
     options: [
       {
         id: 'warm',
-        text: "Likewise! How've you been? How's things at [org] this month — anything big on?",
+        text: `Likewise! How've you been? How's things at ${persona.orgName} this month — anything big on?`,
         minutes: 2,
         quality: 3,
         rushedQuality: 1,
@@ -677,7 +677,7 @@ export const NEXT_STEP_BEAT: Beat = {
   options: [
     {
       id: 'date',
-      text: "Before we drop — shall I put something in the diary for [specific date] so this doesn't drift?",
+      text: "Before we drop — shall I put something in the diary for next Friday so this doesn't drift?",
       minutes: 1,
       quality: 3,
       note: 'A next step with a date attached is the difference between a good call and a call that goes nowhere.',
