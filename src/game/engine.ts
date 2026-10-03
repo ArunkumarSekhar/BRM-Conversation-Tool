@@ -9,6 +9,16 @@ import type {
 } from '../data/types';
 import { QUALITY_DELTA, OBJECTION_COUNT } from '../data/scoring';
 import { pickRandom, pickWeighted, sampleDistinct, shuffle } from './random';
+import { PARTNER_PERSONAS, type PartnerPersona } from '../data/partnersCall/persona';
+
+/** Partners entry scenarios where a 'continue' outcome means a call got scheduled —
+ * the player should walk into the real, clocked call simulation next, not the flat
+ * step-by-step engine. Their text uses {{contactName}}/{{orgName}} placeholders. */
+const SCHEDULES_CALL_SCENARIOS = new Set(['whatsapp-outreach', 'email-outreach']);
+
+function fillPersonaTokens(text: string, persona: PartnerPersona): string {
+  return text.replaceAll('{{contactName}}', persona.contactName).replaceAll('{{orgName}}', persona.orgName);
+}
 
 const DIRECT_OBJECTION_REACTIONS: Record<Quality, string[]> = {
   3: [
@@ -72,6 +82,9 @@ export type Step =
       reactions: Record<Quality, string>;
       endsRun: boolean;
       endText?: string;
+      /** set when a 'continue' outcome here means a call got scheduled — the
+       * UI should walk into the real clocked call simulation next, with this persona. */
+      scheduledCallPersonaId?: string;
     }
   | {
       kind: 'discovery';
@@ -127,9 +140,13 @@ export function buildRun(flow: FlowData, config: RunConfig): RunPlan {
   let maxRapport = 0;
   let endsEarly = false;
 
+  let skipGenericSteps = false;
+
   if (config.channel === 'online') {
     const scenarios = flow.entry[config.initiatedBy ?? 'us'];
     const scenario = scenarios.find((s) => s.id === config.scenarioId) ?? scenarios[0];
+    const schedulesCall = flow.id === 'partners' && SCHEDULES_CALL_SCENARIOS.has(scenario.id);
+    const callPersona = schedulesCall ? pickRandom(PARTNER_PERSONAS) : undefined;
 
     const continueBranches = scenario.branches.filter((b) => b.outcome.kind !== 'end');
     const endBranches = scenario.branches.filter((b) => b.outcome.kind === 'end');
@@ -142,20 +159,24 @@ export function buildRun(flow: FlowData, config: RunConfig): RunPlan {
     const branch = pickWeighted(pool, (b) => b.difficultyWeight[difficulty] || 1);
 
     const endsRun = branch.outcome.kind === 'end';
+    const willScheduleCall = schedulesCall && !endsRun;
+    const fill = (text: string) => (callPersona ? fillPersonaTokens(text, callPersona) : text);
     steps.push({
       kind: 'entry',
       progressLabel: 'Entry',
       scenarioLabel: scenario.label,
       context: scenario.context,
-      usOpening: scenario.usOpening,
-      themLine: branch.themLine,
-      options: shuffle(branch.options),
+      usOpening: fill(scenario.usOpening),
+      themLine: fill(branch.themLine),
+      options: shuffle(branch.options).map((o) => ({ ...o, text: fill(o.text) })),
       reactions: branch.reactions,
       endsRun,
       endText: branch.outcome.kind === 'end' ? branch.outcome.text : undefined,
+      scheduledCallPersonaId: willScheduleCall ? callPersona?.id : undefined,
     });
     maxRapport += bestDelta;
     endsEarly = endsRun;
+    skipGenericSteps = willScheduleCall;
   } else {
     const opening = flow.offlineOpenings.find((o) => o.id === config.offlineOpeningId) ?? flow.offlineOpenings[0];
     steps.push({
@@ -170,7 +191,7 @@ export function buildRun(flow: FlowData, config: RunConfig): RunPlan {
     });
   }
 
-  if (!endsEarly) {
+  if (!endsEarly && !skipGenericSteps) {
     // Discovery: pick which question to ask (scored by the row's priority), reveal a
     // difficulty-weighted random answer, and route to a pitch variant.
     const rowOptions = flow.discoveryRouting.map((row) => {

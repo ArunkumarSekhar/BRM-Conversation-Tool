@@ -12,6 +12,9 @@ interface Props {
   config: RunConfig;
   onExit: () => void;
   onFinish: (result: FinishResult) => void;
+  /** Fired instead of onFinish/advancing when the entry step just resolved into a
+   * scheduled call — the app should hand off to the real, clocked call simulation. */
+  onScheduleCall?: (personaId: string) => void;
 }
 
 export interface FinishResult {
@@ -31,7 +34,7 @@ interface DiscoveryPick {
   framingNote: string;
 }
 
-export function ConversationScreen({ flowId, config, onExit, onFinish }: Props) {
+export function ConversationScreen({ flowId, config, onExit, onFinish, onScheduleCall }: Props) {
   const flow = FLOWS[flowId];
   const runPlan = useMemo(() => buildRun(flow, config), [flow, config]);
   const [stepIndex, setStepIndex] = useState(0);
@@ -153,6 +156,10 @@ export function ConversationScreen({ flowId, config, onExit, onFinish }: Props) 
   }
 
   function handleNext() {
+    if (step?.kind === 'entry' && step.scheduledCallPersonaId && onScheduleCall) {
+      onScheduleCall(step.scheduledCallPersonaId);
+      return;
+    }
     const isEntryEnd = step?.kind === 'entry' && step.endsRun;
     if (isEntryEnd || stepIndex + 1 >= runPlan.steps.length) {
       onFinish({
@@ -210,7 +217,11 @@ export function ConversationScreen({ flowId, config, onExit, onFinish }: Props) 
       <footer className="shrink-0 border-t border-slate-200 dark:border-slate-700 p-4">
         {step.kind === 'entry' &&
           (resolved ? (
-            <NextButton onClick={handleNext} isLast={step.endsRun || stepIndex + 1 >= runPlan.steps.length} />
+            <NextButton
+              onClick={handleNext}
+              isLast={step.endsRun || stepIndex + 1 >= runPlan.steps.length}
+              label={step.scheduledCallPersonaId ? 'Start the call' : undefined}
+            />
           ) : (
             <ChoiceList
               options={step.options}
@@ -293,13 +304,13 @@ function ChoiceList({
   );
 }
 
-function NextButton({ onClick, isLast }: { onClick: () => void; isLast: boolean }) {
+function NextButton({ onClick, isLast, label }: { onClick: () => void; isLast: boolean; label?: string }) {
   return (
     <button
       onClick={onClick}
       className="w-full rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 text-sm transition"
     >
-      {isLast ? 'See results' : 'Next'}
+      {label ?? (isLast ? 'See results' : 'Next')}
     </button>
   );
 }

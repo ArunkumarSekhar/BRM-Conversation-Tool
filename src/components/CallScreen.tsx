@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Difficulty } from '../data/types';
 import { DIFFICULTY_LABEL } from '../data/types';
 import { PHASE_LABEL, buildAskLadder, ASK_SIZES, type AskId } from '../data/partnersCall/beats';
-import type { FactKey } from '../data/partnersCall/persona';
+import type { FactKey, TimeBudgetId } from '../data/partnersCall/persona';
 import {
   createCall,
   chooseBeatOption,
@@ -39,6 +39,9 @@ interface Props {
   difficulty: Difficulty;
   onExit: () => void;
   onFinish: (result: CallResult) => void;
+  /** omit to randomise persona/budget, which is the normal (offline formal-call) mode */
+  forcePersonaId?: string;
+  forceBudget?: TimeBudgetId;
 }
 
 const FACT_LABEL: Record<FactKey, string> = {
@@ -53,8 +56,8 @@ const FACT_LABEL: Record<FactKey, string> = {
 
 const ALL_FACTS = Object.keys(FACT_LABEL) as FactKey[];
 
-export function CallScreen({ difficulty, onExit, onFinish }: Props) {
-  const [state, setState] = useState<CallState>(() => createCall({ difficulty }));
+export function CallScreen({ difficulty, onExit, onFinish, forcePersonaId, forceBudget }: Props) {
+  const [state, setState] = useState<CallState>(() => createCall({ difficulty, forcePersonaId, forceBudget }));
   const [pickedAsks, setPickedAsks] = useState<AskId[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 

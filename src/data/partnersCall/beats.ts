@@ -80,7 +80,7 @@ export function openingBeat(persona: PartnerPersona): Beat {
   return {
     id: 'opening',
     phase: 'opening',
-    prompt: `${persona.contactRole} at ${persona.orgName} joins the call. "Hi — good to finally put a face to the name."`,
+    prompt: `${persona.contactName}, ${persona.contactRole} at ${persona.orgName}, joins the call. "Hi — good to finally put a face to the name."`,
     promptIsProspect: true,
     options: [
       {

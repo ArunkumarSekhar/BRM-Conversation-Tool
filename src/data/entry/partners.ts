@@ -7,7 +7,7 @@ const us: EntryScenario[] = [
     context:
       "Before sending this, you checked with BRM — has anyone worked with this org before, is someone already talking to them, does anyone there know someone personally? Then you read their page in the Partner Org Research doc, so you already know what they actually do.",
     usOpening:
-      "Hi. Good afternoon Rohan.\nMy name is Aisha. I work with Blue Ribbon Movement (BRM). We run Community Connect, a volunteer model that empowers youth with various skills, post which they play the role of bridging the gap between the community and urban local bodies to build collaborative governance systems.\nChief in this is our Community Connect Fellowship, a 3 month civic leadership program for young people in Mumbai.\nWe are currently looking to partner and collaborate with organisations in the sector whose work meaningfully overlaps with what we are trying to do for young people in the sector, and we wanted to have this conversation with you, as part of Udaan Collective.\nLet me know when is a good time to connect? 😊\nP.S: This costs zero funding from your end, in case you were apprehensive and/or thinking of that.",
+      "Hi. Good afternoon {{contactName}}.\nMy name is Aisha. I work with Blue Ribbon Movement (BRM). We run Community Connect, a volunteer model that empowers youth with various skills, post which they play the role of bridging the gap between the community and urban local bodies to build collaborative governance systems.\nChief in this is our Community Connect Fellowship, a 3 month civic leadership program for young people in Mumbai.\nWe are currently looking to partner and collaborate with organisations in the sector whose work meaningfully overlaps with what we are trying to do for young people in the sector, and we wanted to have this conversation with you, as part of {{orgName}}.\nLet me know when is a good time to connect? 😊\nP.S: This costs zero funding from your end, in case you were apprehensive and/or thinking of that.",
     branches: [
       {
         id: 'reply-with-time',
@@ -113,7 +113,7 @@ const us: EntryScenario[] = [
         themLine: '[48 hours pass. No reply yet.]',
         difficultyWeight: { easy: 1, medium: 2, hard: 3 },
         options: [
-          { id: 'a', quality: 3, text: 'Hi Rohan, just following up on my message from earlier this week. Would love to find a time to connect whenever works for you 😊' },
+          { id: 'a', quality: 3, text: 'Hi {{contactName}}, just following up on my message from earlier this week. Would love to find a time to connect whenever works for you 😊' },
           { id: 'b', quality: 2, text: "Hey, did you see my message? Let me know!" },
           { id: 'c', quality: 1, text: "[Don't follow up at all]" },
         ],
@@ -135,7 +135,7 @@ const us: EntryScenario[] = [
     context:
       "Before sending this, you checked with BRM — same questions as WhatsApp. The specific program or initiative line below has to come from the org's Research one-pager. An email that doesn't mention anything specific about them reads like a mass mailer.",
     usOpening:
-      "Subject: Prerna Foundation x Blue Ribbon Movement, working with young people in Mumbai\n\nHi Meera,\nGood afternoon. My name is Aisha and I work with Blue Ribbon Movement (BRM).\nWe run Community Connect, a volunteer model that empowers youth with various skills, after which they play the role of bridging the gap between the community and urban local bodies to build collaborative governance systems. Chief in this is our Community Connect Fellowship, a three month civic leadership program for young people in Mumbai.\nI have been following Prerna Foundation's work on your after-school numeracy program, and there is real overlap with what we are trying to do for young people in the sector. We are looking to partner with organisations like yours and would love to have this conversation with you.\nWould you be open to a 30 minute video call sometime in the next two weeks? Happy to work around your calendar, or you can pick a slot here: [calendar link].\nLooking forward to hearing from you.\nWarmly,\nAisha\nPartnerships Associate, Blue Ribbon Movement\nP.S. This costs zero funding from your end, in case you were wondering about that.",
+      "Subject: {{orgName}} x Blue Ribbon Movement, working with young people in Mumbai\n\nHi {{contactName}},\nGood afternoon. My name is Aisha and I work with Blue Ribbon Movement (BRM).\nWe run Community Connect, a volunteer model that empowers youth with various skills, after which they play the role of bridging the gap between the community and urban local bodies to build collaborative governance systems. Chief in this is our Community Connect Fellowship, a three month civic leadership program for young people in Mumbai.\nI have been following {{orgName}}'s work in the sector, and there is real overlap with what we are trying to do for young people. We are looking to partner with organisations like yours and would love to have this conversation with you.\nWould you be open to a 30 minute video call sometime in the next two weeks? Happy to work around your calendar, or you can pick a slot here: [calendar link].\nLooking forward to hearing from you.\nWarmly,\nAisha\nPartnerships Associate, Blue Ribbon Movement\nP.S. This costs zero funding from your end, in case you were wondering about that.",
     branches: [
       {
         id: 'books-slot',
@@ -225,7 +225,7 @@ const us: EntryScenario[] = [
         themLine: '[48 hours since you sent the email. No reply.]',
         difficultyWeight: { easy: 1, medium: 2, hard: 3 },
         options: [
-          { id: 'a', quality: 3, text: 'Hi Meera, just following up on my email below. Would love to find 30 minutes whenever works for you. Calendar link again here: [calendar link].' },
+          { id: 'a', quality: 3, text: 'Hi {{contactName}}, just following up on my email below. Would love to find 30 minutes whenever works for you. Calendar link again here: [calendar link].' },
           { id: 'b', quality: 2, text: '[Resends the entire original email again, unchanged]' },
           { id: 'c', quality: 1, text: "[Don't follow up at all]" },
         ],
