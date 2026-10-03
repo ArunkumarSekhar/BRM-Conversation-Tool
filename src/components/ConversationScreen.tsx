@@ -76,6 +76,7 @@ export function ConversationScreen({ flowId, config, onExit, onFinish }: Props) 
         entries.push({ who: 'coach', text: discoveryPick.framingNote, key: `${stepIndex}-coach` });
       }
       entries.push({ who: 'player', text, key: `${stepIndex}-pitch` });
+      entries.push({ who: 'prospect', text: step.afterReaction, key: `${stepIndex}-pitch-reaction` });
       addEntries(entries);
       setResolved(true);
     } else if (step.kind === 'objection') {

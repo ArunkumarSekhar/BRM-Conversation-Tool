@@ -9,21 +9,21 @@ export const partnersDiscoveryRouting: DiscoveryRow[] = [
     answers: [
       {
         id: 'retention-skills',
-        text: 'Struggles with retention or deepening skills.',
+        text: "Honestly, getting people in the door isn't the problem — it's that they plateau. A few sessions in, there's nowhere for them to grow, so they drift off.",
         routesTo: 'full',
         framingNote: 'Lead with skills and network — that half of CCF is worth leading with.',
         weight: { easy: 3, medium: 2, hard: 1 },
       },
       {
         id: 'supply',
-        text: 'Struggles with volunteer numbers or supply.',
+        text: "We're just chronically short on people, if I'm honest. We'll plan something that needs twelve volunteers and scrape together six.",
         routesTo: 'full',
         framingNote: 'Lead with the exchange — the reciprocal half matters more to them than development.',
         weight: { easy: 1, medium: 2, hard: 2 },
       },
       {
         id: 'fine',
-        text: 'Program is running fine, mild curiosity only.',
+        text: "Honestly, it's running fine as it is. I'm mostly just curious what you're doing, not looking to fix anything.",
         routesTo: 'short',
         framingNote: 'No pain surfaced yet. Pitching hard into no pain is how you lose the room — ask again.',
         weight: { easy: 1, medium: 1, hard: 2 },
@@ -38,14 +38,14 @@ export const partnersDiscoveryRouting: DiscoveryRow[] = [
     answers: [
       {
         id: 'named',
-        text: 'They name a specific person.',
+        text: "Actually, yeah — there's one of our volunteers, Zara, who's been incredible this past year. She just doesn't have anywhere to grow into right now.",
         routesTo: 'full',
         framingNote: 'Frame the pitch around that person, then go straight for the nomination ask.',
         weight: { easy: 3, medium: 2, hard: 1 },
       },
       {
         id: 'no-one',
-        text: 'No one comes to mind.',
+        text: "Hm — nobody's jumping out at me right now, honestly. Let me think about it.",
         routesTo: 'short',
         framingNote: 'Ask what would make them confident recommending someone — that tells you what they screen for.',
         weight: { easy: 1, medium: 2, hard: 3 },
@@ -60,21 +60,21 @@ export const partnersDiscoveryRouting: DiscoveryRow[] = [
     answers: [
       {
         id: 'budget-time',
-        text: 'Budget or time concerns.',
+        text: "Mostly it comes down to time, honestly. If it's going to eat into my week without a clear payoff, it's a hard sell.",
         routesTo: 'short',
         framingNote: 'Pre-empt with the logistics objection before they raise it.',
         weight: { easy: 1, medium: 2, hard: 2 },
       },
       {
         id: 'proof',
-        text: 'Wants proof or a track record.',
+        text: "I'd want to see it's actually worked somewhere else before I put our people into it.",
         routesTo: 'short',
         framingNote: 'Pre-empt with ROI or who-else-partners — social proof lands better offered than extracted.',
         weight: { easy: 1, medium: 2, hard: 2 },
       },
       {
         id: 'stretched',
-        text: 'Already stretched across many partners.',
+        text: "We're already juggling a handful of partners as it is, so anything new needs to really justify itself.",
         routesTo: 'short',
         framingNote: 'Pre-empt with the exclusivity objection — say early this is not exclusive.',
         weight: { easy: 2, medium: 1, hard: 2 },
@@ -89,14 +89,14 @@ export const partnersDiscoveryRouting: DiscoveryRow[] = [
     answers: [
       {
         id: 'bad-experience',
-        text: 'Mentions a past collaboration that went badly.',
+        text: "We tried something like this once before and it didn't really go well — a lot was promised, not much showed up.",
         routesTo: 'short',
         framingNote: 'Surface it directly — expect the bad-experience objection to matter here.',
         weight: { easy: 1, medium: 1, hard: 2 },
       },
       {
         id: 'fine',
-        text: 'No major concerns.',
+        text: "We've dabbled a bit, nothing major. No real complaints either way.",
         routesTo: 'full',
         framingNote: 'Clear to proceed with the full pitch.',
         weight: { easy: 3, medium: 2, hard: 1 },
