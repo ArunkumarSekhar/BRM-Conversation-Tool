@@ -60,6 +60,9 @@ export interface CallState {
   phase: Phase;
   transcript: TranscriptLine[];
   pending: PendingKind;
+  /** true once the current pending step has been answered and is waiting on a "Next" tap
+   * before the other side's next line appears — mirrors how the rest of the app paces turns. */
+  resolved: boolean;
   ended: boolean;
   endReason?: 'time' | 'closed';
   closeLabel?: string;
@@ -116,6 +119,7 @@ export function createCall(config: CallConfig): CallState {
     phase: 'consent',
     transcript: [],
     pending: { kind: 'done' },
+    resolved: false,
     ended: false,
     lineCounter: 0,
   };
@@ -173,7 +177,8 @@ function endOnTime(state: CallState) {
   );
 }
 
-/** Advance to whatever comes next, given the phase we just finished. */
+/** Move the phase forward and push whatever the other side says to open the next beat.
+ * Only called from continueCall, once the player has read the previous exchange and tapped Next. */
 function advance(state: CallState) {
   if (outOfTime(state)) {
     endOnTime(state);
@@ -233,16 +238,18 @@ function advance(state: CallState) {
   }
 }
 
+/** Resolve a beat choice: apply time/rapport, show the player's line and any
+ * immediate reveal/note/reaction — then pause. Nothing about what comes next
+ * is decided here; that happens in continueCall once the player taps Next. */
 export function chooseBeatOption(prev: CallState, option: CallOption): CallState {
   const state = clone(prev);
-  if (state.ended || state.pending.kind !== 'beat') return state;
+  if (state.ended || state.pending.kind !== 'beat' || state.resolved) return state;
   const beat = state.pending.beat;
 
   state.transcript.push(line(state, 'player', option.text));
   spend(state, option.minutes);
   award(state, option);
 
-  // Reveal whatever fact this option surfaces.
   if (option.reveals) {
     state.discovered.add(option.reveals);
     state.transcript.push(line(state, 'prospect', state.persona.lines[option.reveals]));
@@ -264,54 +271,92 @@ export function chooseBeatOption(prev: CallState, option: CallOption): CallState
     return state;
   }
 
-  // Within-phase follow-ups before moving on.
-  if (beat.id === 'knowledge-check') {
-    const knowledge = state.discovered.has('ccfKnowledge') ? state.persona.ccfKnowledge : 'none';
-    const next = explainerBeat(knowledge);
-    state.transcript.push(line(state, 'coach', next.prompt));
-    state.pending = { kind: 'beat', beat: next };
-    return state;
-  }
-  if (beat.id === 'explainer') {
-    // With the clock nearly gone they skip the "prove it" push and let you get to the point.
-    if (minutesLeft(state) > 8) {
-      state.transcript.push(line(state, 'prospect', outcomesBeat.prompt));
-      state.pending = { kind: 'beat', beat: outcomesBeat };
-      return state;
-    }
-    advance(state);
-    return state;
-  }
-  if (beat.id === 'outcomes') {
-    advance(state);
-    return state;
-  }
-  if (beat.id === 'bridge') {
-    state.pending = { kind: 'discovery' };
-    return state;
-  }
-  if (beat.id === 'program') {
-    // Same again — a squeezed call does not stop to interrogate the exchange.
-    if (minutesLeft(state) > 6) {
-      state.transcript.push(line(state, 'prospect', reciprocityBeat.prompt));
-      state.pending = { kind: 'beat', beat: reciprocityBeat };
-      return state;
-    }
-    advance(state);
-    return state;
-  }
-  if (beat.id === 'reciprocity') {
-    advance(state);
-    return state;
-  }
   if (beat.id === 'next-step') {
+    // Nothing more to pause for — this is the last thing said before results.
     state.ended = true;
     state.endReason = 'closed';
     state.pending = { kind: 'done' };
     return state;
   }
 
-  advance(state);
+  state.resolved = true;
+  return state;
+}
+
+/** The player has read the last exchange and tapped Next — figure out what the
+ * other side says now, based on whichever beat/step was just resolved. */
+export function continueCall(prev: CallState): CallState {
+  const state = clone(prev);
+  if (state.ended || !state.resolved) return state;
+  state.resolved = false;
+
+  if (state.pending.kind === 'beat') {
+    const beat = state.pending.beat;
+
+    if (beat.id === 'knowledge-check') {
+      const knowledge = state.discovered.has('ccfKnowledge') ? state.persona.ccfKnowledge : 'none';
+      const next = explainerBeat(knowledge);
+      state.transcript.push(line(state, 'coach', next.prompt));
+      state.pending = { kind: 'beat', beat: next };
+      return state;
+    }
+    if (beat.id === 'explainer') {
+      // With the clock nearly gone they skip the "prove it" push and let you get to the point.
+      if (minutesLeft(state) > 8) {
+        state.transcript.push(line(state, 'prospect', outcomesBeat.prompt));
+        state.pending = { kind: 'beat', beat: outcomesBeat };
+        return state;
+      }
+      advance(state);
+      return state;
+    }
+    if (beat.id === 'outcomes') {
+      advance(state);
+      return state;
+    }
+    if (beat.id === 'bridge') {
+      state.pending = { kind: 'discovery' };
+      return state;
+    }
+    if (beat.id === 'program') {
+      // Same again — a squeezed call does not stop to interrogate the exchange.
+      if (minutesLeft(state) > 6) {
+        state.transcript.push(line(state, 'prospect', reciprocityBeat.prompt));
+        state.pending = { kind: 'beat', beat: reciprocityBeat };
+        return state;
+      }
+      advance(state);
+      return state;
+    }
+    if (beat.id === 'reciprocity') {
+      advance(state);
+      return state;
+    }
+    advance(state);
+    return state;
+  }
+
+  if (state.pending.kind === 'ask-select') {
+    if (state.chosenAsks.includes('current')) {
+      state.pending = { kind: 'ask-size' };
+    } else {
+      state.transcript.push(line(state, 'prospect', 'Okay — that I can probably work with.'));
+      advance(state);
+    }
+    return state;
+  }
+
+  if (state.pending.kind === 'ask-size') {
+    advance(state);
+    return state;
+  }
+
+  if (state.pending.kind === 'close') {
+    state.transcript.push(line(state, 'coach', NEXT_STEP_BEAT.prompt));
+    state.pending = { kind: 'beat', beat: NEXT_STEP_BEAT };
+    return state;
+  }
+
   return state;
 }
 
@@ -356,7 +401,7 @@ export function finishDiscovery(prev: CallState): CallState {
 
 export function selectAsks(prev: CallState, asks: AskId[]): CallState {
   const state = clone(prev);
-  if (state.ended || state.pending.kind !== 'ask-select') return state;
+  if (state.ended || state.pending.kind !== 'ask-select' || state.resolved) return state;
 
   const ladder = buildAskLadder(state.persona, state.discovered);
   const ordered = ladder.filter((a) => asks.includes(a.id));
@@ -392,18 +437,13 @@ export function selectAsks(prev: CallState, asks: AskId[]): CallState {
     return state;
   }
 
-  if (state.chosenAsks.includes('current')) {
-    state.pending = { kind: 'ask-size' };
-  } else {
-    state.transcript.push(line(state, 'prospect', 'Okay — that I can probably work with.'));
-    advance(state);
-  }
+  state.resolved = true;
   return state;
 }
 
 export function chooseAskSize(prev: CallState, sizeId: 'small' | 'medium' | 'large'): CallState {
   const state = clone(prev);
-  if (state.ended || state.pending.kind !== 'ask-size') return state;
+  if (state.ended || state.pending.kind !== 'ask-size' || state.resolved) return state;
 
   const size = ASK_SIZES.find((s) => s.id === sizeId)!;
   state.transcript.push(line(state, 'player', size.text));
@@ -455,13 +495,13 @@ export function chooseAskSize(prev: CallState, sizeId: 'small' | 'medium' | 'lar
     endOnTime(state);
     return state;
   }
-  advance(state);
+  state.resolved = true;
   return state;
 }
 
 export function chooseClose(prev: CallState, closeId: string): CallState {
   const state = clone(prev);
-  if (state.ended || state.pending.kind !== 'close') return state;
+  if (state.ended || state.pending.kind !== 'close' || state.resolved) return state;
   const close = CALL_CLOSES.find((c) => c.id === closeId);
   if (!close) return state;
 
@@ -516,8 +556,7 @@ export function chooseClose(prev: CallState, closeId: string): CallState {
     return state;
   }
 
-  state.transcript.push(line(state, 'coach', NEXT_STEP_BEAT.prompt));
-  state.pending = { kind: 'beat', beat: NEXT_STEP_BEAT };
+  state.resolved = true;
   return state;
 }
 

@@ -5,11 +5,11 @@ const us: EntryScenario[] = [
     id: 'friend-referred',
     label: 'A friend referred them to you',
     context: "Someone you both know told them you'd love to work with BRM.",
-    usOpening: "Hey [Name] — [friend] said you'd love to work with us. Do you have time to talk about it?",
+    usOpening: "Hey Priya — Karan said you'd love to work with us. Do you have time to talk about it?",
     branches: [
       {
         id: 'enthusiastic-yes',
-        themLine: "Yes, [friend] was right — I'd love to get the same experience they had.",
+        themLine: "Yes, Karan was right — I'd love to get the same experience they had.",
         difficultyWeight: { easy: 3, medium: 2, hard: 1 },
         options: [
           { id: 'a', quality: 3, text: 'Fantastic — want to hop on a call, or keep going over text?' },
@@ -65,7 +65,7 @@ const us: EntryScenario[] = [
     branches: [
       {
         id: 'yes-has-time',
-        themLine: "Yes, I do. Honestly I applied because [gives a specific reason].",
+        themLine: "Yes, I do. Honestly I applied because a senior from my college did it last year and said it actually changed how she saw the city.",
         difficultyWeight: { easy: 3, medium: 2, hard: 1 },
         options: [
           { id: 'a', quality: 3, text: "That's exactly it — can I ask what kind of work you're doing right now? That'll tell me which parts of the fellowship will land best for you." },
@@ -73,7 +73,7 @@ const us: EntryScenario[] = [
           { id: 'c', quality: 1, text: "Cool, I'll just send you the link then." },
         ],
         reactions: {
-          3: "Sure — right now I'm mostly [describes their current work].",
+          3: "Sure — right now I'm mostly doing content and outreach for a local NGO.",
           2: '...Okay, go ahead.',
           1: 'Oh — okay, sending it now?',
         },
@@ -117,7 +117,7 @@ const us: EntryScenario[] = [
     id: 'met-at-event',
     label: 'You met them at an event',
     context: 'You met at an event and they said they wanted to know more.',
-    usOpening: "Hey [Name], we met at [event] — you mentioned wanting to know more about the fellowship. Good time now?",
+    usOpening: "Hey Aditi, we met at the youth council meetup last week — you mentioned wanting to know more about the fellowship. Good time now?",
     branches: [
       {
         id: 'yes-lets-talk',
@@ -189,7 +189,7 @@ const us: EntryScenario[] = [
     id: 'found-online',
     label: 'You found their work online',
     context: 'You came across their post, profile, or work through a mutual connection.',
-    usOpening: "Hey [Name], I came across [your work / your post] — I'm with Blue Ribbon Movement, we run a fellowship for young people working on civic change in Mumbai. I think you'd love it, and we'd love to have you. Got a few minutes?",
+    usOpening: "Hey Vikram, I came across your post about the beach cleanup drive — I'm with Blue Ribbon Movement, we run a fellowship for young people working on civic change in Mumbai. I think you'd love it, and we'd love to have you. Got a few minutes?",
     branches: [
       {
         id: 'sure-whats-it-about',
@@ -201,7 +201,7 @@ const us: EntryScenario[] = [
           { id: 'c', quality: 1, text: "It's basically a fellowship — want the application link?" },
         ],
         reactions: {
-          3: "That sounds relevant, actually. Right now I'm [describes their work].",
+          3: "That sounds relevant, actually. Right now I'm volunteering with a local cleanup collective on weekends.",
           2: '...Okay, that was a lot. What do you actually want from me?',
           1: '...Maybe? What even is it.',
         },
@@ -252,7 +252,7 @@ const them: EntryScenario[] = [
     branches: [
       {
         id: 'asks-specific',
-        themLine: 'What does [X] actually mean?',
+        themLine: "What does 'civic leadership program' actually mean?",
         difficultyWeight: { easy: 2, medium: 2, hard: 1 },
         options: [
           { id: 'a', quality: 3, text: '[Answers their specific question briefly] — does that feel relevant to where you are right now? Does it excite you?' },
@@ -276,7 +276,7 @@ const them: EntryScenario[] = [
           { id: 'c', quality: 1, text: 'Cool, here\'s the application link.' },
         ],
         reactions: {
-          3: "I'm mostly [describes current work] right now.",
+          3: "I'm mostly doing college and a part-time internship right now.",
           2: 'Okay... that was a lot at once.',
           1: 'Oh — okay, sending it now?',
         },
@@ -308,7 +308,7 @@ const them: EntryScenario[] = [
     branches: [
       {
         id: 'yes-a-bit',
-        themLine: 'Yes, a bit — they said [X].',
+        themLine: "Yes, a bit — they said it's basically a leadership program where you work on a real project in the city.",
         difficultyWeight: { easy: 2, medium: 2, hard: 1 },
         options: [
           { id: 'a', quality: 3, text: "Glad to hear it — what's your reaction to that? Does it feel relevant to what you're doing?" },
@@ -420,7 +420,7 @@ const them: EntryScenario[] = [
           { id: 'c', quality: 1, text: 'Well, do you want to apply or not?' },
         ],
         reactions: {
-          3: 'Sure, that sounds fair — I\'m currently [describes what they do].',
+          3: "Sure, that sounds fair — I'm currently in my final year of college, doing a bit of freelance design on the side.",
           2: 'Okay... that was a lot.',
           1: "I don't know yet, that's the whole point of asking.",
         },
