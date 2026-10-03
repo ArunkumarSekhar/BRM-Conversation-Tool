@@ -10,12 +10,14 @@ import {
 } from '../data/partnersCall/persona';
 import {
   ASK_LADDER,
+  buildAskLadder,
   ASK_SIZES,
   CALL_CLOSES,
   DISCOVERY_QUESTIONS,
   NEXT_STEP_BEAT,
   agendaBeat,
   bridgeBeat,
+  consentBeat,
   explainerBeat,
   knowledgeCheckBeat,
   openingBeat,
@@ -105,13 +107,13 @@ export function createCall(config: CallConfig): CallState {
     minutesTotal: budget.minutes,
     minutesUsed: 0,
     rapport: 0,
-    // opening, agenda, knowledge check, explainer, outcomes, bridge, 3 discovery,
+    // consent, opening, agenda, knowledge check, explainer, outcomes, bridge, 3 discovery,
     // program, reciprocity, ask, close, next step
-    maxRapport: QUALITY_DELTA[config.difficulty][3] * 13,
+    maxRapport: QUALITY_DELTA[config.difficulty][3] * 14,
     discovered: new Set(),
     askedQuestionIds: [],
     chosenAsks: [],
-    phase: 'opening',
+    phase: 'consent',
     transcript: [],
     pending: { kind: 'done' },
     ended: false,
@@ -126,9 +128,8 @@ export function createCall(config: CallConfig): CallState {
     ),
   );
 
-  const opening = openingBeat(persona);
-  state.transcript.push(line(state, 'prospect', opening.prompt));
-  state.pending = { kind: 'beat', beat: opening };
+  state.transcript.push(line(state, 'coach', consentBeat.prompt));
+  state.pending = { kind: 'beat', beat: consentBeat };
   return state;
 }
 
@@ -180,6 +181,13 @@ function advance(state: CallState) {
   }
 
   switch (state.phase) {
+    case 'consent': {
+      state.phase = 'opening';
+      const opening = openingBeat(state.persona);
+      state.transcript.push(line(state, 'prospect', opening.prompt));
+      state.pending = { kind: 'beat', beat: opening };
+      return;
+    }
     case 'opening': {
       state.phase = 'agenda';
       const budget = TIME_BUDGETS[state.budgetId];
@@ -240,6 +248,16 @@ export function chooseBeatOption(prev: CallState, option: CallOption): CallState
     state.transcript.push(line(state, 'prospect', state.persona.lines[option.reveals]));
   }
   if (option.note) state.transcript.push(line(state, 'coach', option.note));
+
+  if (beat.id === 'consent') {
+    const reaction =
+      option.quality === 3
+        ? "Sure, that's fine — go ahead."
+        : option.quality === 2
+          ? 'I guess that\'s okay, sure.'
+          : "...Wait, you're recording this? I wish you'd asked first.";
+    state.transcript.push(line(state, 'prospect', reaction));
+  }
 
   if (outOfTime(state)) {
     endOnTime(state);
@@ -340,7 +358,8 @@ export function selectAsks(prev: CallState, asks: AskId[]): CallState {
   const state = clone(prev);
   if (state.ended || state.pending.kind !== 'ask-select') return state;
 
-  const ordered = ASK_LADDER.filter((a) => asks.includes(a.id));
+  const ladder = buildAskLadder(state.persona, state.discovered);
+  const ordered = ladder.filter((a) => asks.includes(a.id));
   for (const ask of ordered) {
     state.transcript.push(line(state, 'player', ask.text));
     spend(state, ask.minutes);
@@ -515,4 +534,4 @@ export function availableCloses(_state: CallState): CallClose[] {
   return CALL_CLOSES;
 }
 
-export { CALL_CLOSES, ASK_LADDER, ASK_SIZES, DISCOVERY_QUESTIONS };
+export { CALL_CLOSES, ASK_LADDER, buildAskLadder, ASK_SIZES, DISCOVERY_QUESTIONS };

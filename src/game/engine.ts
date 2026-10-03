@@ -10,7 +10,7 @@ import type {
 import { QUALITY_DELTA, OBJECTION_COUNT } from '../data/scoring';
 import { pickWeighted, sampleDistinct, shuffle } from './random';
 
-const OBJECTION_REACTIONS: Record<Quality, string[]> = {
+const DIRECT_OBJECTION_REACTIONS: Record<Quality, string[]> = {
   3: [
     "Okay — that actually helps, thank you.",
     "Huh, I hadn't thought about it that way. Fair enough.",
@@ -25,6 +25,24 @@ const OBJECTION_REACTIONS: Record<Quality, string[]> = {
     "That really didn't land for me.",
     "...That's not what I asked, honestly.",
     "I'm even less sure now, if I'm being honest.",
+  ],
+};
+
+const PARTNERS_OBJECTION_REACTIONS: Record<Quality, string[]> = {
+  3: [
+    "Okay, that's a fair answer — appreciate you addressing it directly.",
+    "Fair enough, that actually changes how I'm thinking about this.",
+    "That's a reasonable answer. Go on.",
+  ],
+  2: [
+    "Hmm, okay. I'd want more detail at some point, but go on.",
+    "I hear you, though I'm not fully convinced yet.",
+    "Alright, noted. Let's move on for now.",
+  ],
+  1: [
+    "That doesn't really put my mind at ease, if I'm honest.",
+    "...That's not quite what I was asking.",
+    "I'm more hesitant now, not less.",
   ],
 };
 
@@ -160,6 +178,7 @@ export function buildRun(flow: FlowData, config: RunConfig): RunPlan {
 
     const objectionCount = Math.min(OBJECTION_COUNT[difficulty], flow.library.objections.length);
     const chosenObjections = sampleDistinct(flow.library.objections, objectionCount);
+    const reactionPool = flow.id === 'partners' ? PARTNERS_OBJECTION_REACTIONS : DIRECT_OBJECTION_REACTIONS;
     chosenObjections.forEach((block, i) => {
       const options = shuffle([
         { id: 'a', text: block.response, quality: 3 as Quality },
@@ -167,9 +186,9 @@ export function buildRun(flow: FlowData, config: RunConfig): RunPlan {
         { id: 'c', text: block.distractors[1], quality: 1 as Quality },
       ]);
       const reactions: Record<Quality, string> = {
-        3: pickWeighted(OBJECTION_REACTIONS[3], () => 1),
-        2: pickWeighted(OBJECTION_REACTIONS[2], () => 1),
-        1: pickWeighted(OBJECTION_REACTIONS[1], () => 1),
+        3: pickWeighted(reactionPool[3], () => 1),
+        2: pickWeighted(reactionPool[2], () => 1),
+        1: pickWeighted(reactionPool[1], () => 1),
       };
       steps.push({
         kind: 'objection',

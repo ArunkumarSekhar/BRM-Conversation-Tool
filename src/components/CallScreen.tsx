@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Difficulty } from '../data/types';
 import { DIFFICULTY_LABEL } from '../data/types';
-import { PHASE_LABEL, ASK_LADDER, ASK_SIZES, type AskId } from '../data/partnersCall/beats';
+import { PHASE_LABEL, buildAskLadder, ASK_SIZES, type AskId } from '../data/partnersCall/beats';
 import type { FactKey } from '../data/partnersCall/persona';
 import {
   createCall,
@@ -83,6 +83,7 @@ export function CallScreen({ difficulty, onExit, onFinish }: Props) {
 
   const closes = useMemo(() => availableCloses(state), [state]);
   const questions = remainingQuestions(state);
+  const askLadder = useMemo(() => buildAskLadder(state.persona, state.discovered), [state]);
 
   return (
     <div className="flex flex-col h-[100svh] max-w-2xl mx-auto w-full bg-white dark:bg-slate-900">
@@ -206,7 +207,7 @@ export function CallScreen({ difficulty, onExit, onFinish }: Props) {
         ) : state.pending.kind === 'ask-select' ? (
           <div className="flex flex-col gap-2">
             <p className="text-xs text-slate-400">Pick the asks you'll make, cheapest first ({pickedAsks.length} selected)</p>
-            {ASK_LADDER.map((ask) => {
+            {askLadder.map((ask) => {
               const on = pickedAsks.includes(ask.id);
               return (
                 <button

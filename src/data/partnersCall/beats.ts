@@ -1,9 +1,10 @@
 import { tofill } from '../types';
 import type { FactKey, PartnerPersona } from './persona';
 
-export type Phase = 'opening' | 'agenda' | 'explainer' | 'discovery' | 'program' | 'ask' | 'close';
+export type Phase = 'consent' | 'opening' | 'agenda' | 'explainer' | 'discovery' | 'program' | 'ask' | 'close';
 
 export const PHASE_LABEL: Record<Phase, string> = {
+  consent: 'Before you start',
   opening: 'Opening',
   agenda: 'Agenda',
   explainer: 'Explaining BRM & CCF',
@@ -36,6 +37,40 @@ export interface Beat {
   promptIsProspect: boolean;
   options: CallOption[];
 }
+
+// ---------------------------------------------------------------------------
+// Phase 0 — Recording consent (ask before anything else is said)
+// ---------------------------------------------------------------------------
+
+export const consentBeat: Beat = {
+  id: 'consent',
+  phase: 'consent',
+  prompt: 'The call connects. Before anything else gets said, there is one thing you are supposed to ask.',
+  promptIsProspect: false,
+  options: [
+    {
+      id: 'ask-properly',
+      text: "Before we get into it, would it be okay if I record this call? It's just to make sure I don't miss any of the details.",
+      minutes: 1,
+      quality: 3,
+      note: 'Asked first, before anything else — exactly what this is supposed to look like.',
+    },
+    {
+      id: 'ask-loosely',
+      text: 'Mind if I record this, just for my notes?',
+      minutes: 1,
+      quality: 2,
+      note: "Still asked first, which is what actually matters — though sticking to the real line keeps it consistent across the team.",
+    },
+    {
+      id: 'skip',
+      text: "[Skip it and start the call]",
+      minutes: 0,
+      quality: 1,
+      note: 'This is supposed to be asked before anything else is said, every time. Skipping it is a real miss, not just a formality.',
+    },
+  ],
+};
 
 // ---------------------------------------------------------------------------
 // Phase 1 — Opening
@@ -381,8 +416,21 @@ export const DISCOVERY_QUESTIONS: DiscoveryQuestion[] = [
 export function programBeat(persona: PartnerPersona, discovered: Set<FactKey>): Beat {
   const knowsTraining = discovered.has('training');
   const knowsCadence = discovered.has('programShape');
+  const knowsName = discovered.has('nameInMind') && !!persona.nameInMind;
 
   const options: CallOption[] = [];
+
+  if (knowsName) {
+    options.push({
+      id: 'named-frame',
+      text: `Honestly, I'm picturing this around ${persona.nameInMind} specifically${
+        persona.nameInMindDetail ? ` — ${persona.nameInMindDetail}` : ''
+      }. Everything I'm describing, the network, the project, the twelve weekends, think about whether it's the right next step for them in particular, not for "a volunteer."`,
+      minutes: 2,
+      quality: 3,
+      note: 'You are no longer selling a programme — you are describing a next step for someone real. This is as strong as the pitch gets.',
+    });
+  }
 
   if (knowsTraining && persona.hasTraining) {
     options.push({
@@ -424,9 +472,9 @@ export function programBeat(persona: PartnerPersona, discovered: Set<FactKey>): 
     id: 'generic',
     text: "What fellows come out with is a stronger civic framework, a network beyond their own org, and a completed project. And it goes both ways — we send our fellows and alumni to help at your events when you're short on hands.",
     minutes: 2,
-    quality: knowsTraining || knowsCadence ? 2 : 3,
+    quality: knowsTraining || knowsCadence || knowsName ? 2 : 3,
     note:
-      knowsTraining || knowsCadence
+      knowsTraining || knowsCadence || knowsName
         ? 'Perfectly fine, but generic — you knew enough to say something sharper than this.'
         : 'Reasonable, though without knowing their setup you are pitching blind.',
   });
@@ -502,29 +550,46 @@ export interface AskOption {
   friction: 'low' | 'medium' | 'high';
 }
 
-export const ASK_LADDER: AskOption[] = [
-  {
-    id: 'rejected',
-    label: 'Their turned-away applicants',
-    friction: 'low',
-    minutes: 1,
-    text: "Easiest place to start — people you've had to turn away before. Not because they weren't good, just because you didn't have room. Those names cost you nothing and they'd be perfect for us.",
-  },
-  {
-    id: 'alumni',
-    label: 'Past volunteers who moved on',
-    friction: 'medium',
-    minutes: 1,
-    text: "The other group is people who've already cycled out of your program. They're not yours to lose at this point, and if they come through CCF they come back into your orbit rather than out of the sector entirely.",
-  },
-  {
-    id: 'current',
-    label: 'Currently active volunteers',
-    friction: 'high',
-    minutes: 2,
-    text: "And then the one that's actually a real ask — some of your current, active people. Weekends only, they stay with you throughout, and they come back to you more capable than they left.",
-  },
-];
+/** Static fallback — used only where a persona/discovered context isn't available. */
+export const ASK_LADDER: AskOption[] = buildAskLadderBase();
+
+function buildAskLadderBase(namedCurrentText?: string): AskOption[] {
+  return [
+    {
+      id: 'rejected',
+      label: 'Their turned-away applicants',
+      friction: 'low',
+      minutes: 1,
+      text: "Easiest place to start — people you've had to turn away before. Not because they weren't good, just because you didn't have room. Those names cost you nothing and they'd be perfect for us.",
+    },
+    {
+      id: 'alumni',
+      label: 'Past volunteers who moved on',
+      friction: 'medium',
+      minutes: 1,
+      text: "The other group is people who've already cycled out of your program. They're not yours to lose at this point, and if they come through CCF they come back into your orbit rather than out of the sector entirely.",
+    },
+    {
+      id: 'current',
+      label: 'Currently active volunteers',
+      friction: 'high',
+      minutes: 2,
+      text:
+        namedCurrentText ??
+        "And then the one that's actually a real ask — some of your current, active people. Weekends only, they stay with you throughout, and they come back to you more capable than they left.",
+    },
+  ];
+}
+
+/** Ask ladder text, personalised for the "current volunteers" ask when a name
+ * has been surfaced in discovery — otherwise identical to the static version. */
+export function buildAskLadder(persona: PartnerPersona, discovered: Set<FactKey>): AskOption[] {
+  const knowsName = discovered.has('nameInMind') && !!persona.nameInMind;
+  if (!knowsName) return buildAskLadderBase();
+  return buildAskLadderBase(
+    `And then the real ask — ${persona.nameInMind}, specifically, plus anyone else currently active you'd trust with it. Weekends only, they stay with you throughout, and they come back more capable than they left.`,
+  );
+}
 
 export interface AskSizeOption {
   id: 'small' | 'medium' | 'large';
