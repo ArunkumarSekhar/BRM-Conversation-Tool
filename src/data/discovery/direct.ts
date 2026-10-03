@@ -2,7 +2,7 @@ import type { DiscoveryRow } from '../types';
 
 const vagueFallback = (weight: { easy: number; medium: number; hard: number }) => ({
   id: 'vague',
-  text: 'Vague interest, no strong signal either way.',
+  text: "I don't know, really — just felt like it might be worth looking into, I guess.",
   routesTo: 'short' as const,
   framingNote: "You don't have enough to personalise yet — a short pitch buys you another question without overloading them.",
   weight,
@@ -17,7 +17,7 @@ export const directDiscoveryRouting: DiscoveryRow[] = [
     answers: [
       {
         id: 'specific-gap',
-        text: 'A specific frustration or gap in their current work.',
+        text: "Honestly, I've been volunteering with a local reading program, but I keep hitting the same wall — we never really get to see if what we're doing actually changes anything long-term.",
         routesTo: 'full',
         framingNote: 'Lead with the civic project — their frustration is the hook.',
         weight: { easy: 3, medium: 2, hard: 1 },
@@ -33,7 +33,7 @@ export const directDiscoveryRouting: DiscoveryRow[] = [
     answers: [
       {
         id: 'isolation',
-        text: 'Doing good work but missing structure or people around them.',
+        text: "Honestly, the work itself is fine — it's just me doing it alone most of the time, no real team or structure around it.",
         routesTo: 'full',
         framingNote: 'Lead with the cohort — isolation is the real problem, not capability.',
         weight: { easy: 3, medium: 2, hard: 1 },
@@ -49,7 +49,7 @@ export const directDiscoveryRouting: DiscoveryRow[] = [
     answers: [
       {
         id: 'idea',
-        text: 'A specific unrealised idea.',
+        text: "Actually, yeah — I've always wanted to do something about how unsafe my neighbourhood's footpaths are, just never had a way to actually start.",
         routesTo: 'full',
         framingNote: 'Name their idea back to them — they already did the hard part.',
         weight: { easy: 3, medium: 2, hard: 1 },
@@ -65,14 +65,14 @@ export const directDiscoveryRouting: DiscoveryRow[] = [
     answers: [
       {
         id: 'heavy-commitments',
-        text: 'Heavy commitments, exams, or unclear availability.',
+        text: "Pretty packed, honestly — exams are coming up and my weekends are kind of unpredictable right now.",
         routesTo: 'short',
         framingNote: 'A busy or exams objection is likely coming — expect it in Handle Resistance.',
         weight: { easy: 2, medium: 2, hard: 3 },
       },
       {
         id: 'clear',
-        text: 'Comfortably available, no red flags.',
+        text: "Pretty free, actually — weekends especially. Nothing major going on right now.",
         routesTo: 'full',
         framingNote: 'No timing concerns raised — safe to lead with the full pitch.',
         weight: { easy: 3, medium: 2, hard: 1 },

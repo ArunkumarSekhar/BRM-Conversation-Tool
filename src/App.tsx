@@ -22,6 +22,7 @@ function App() {
   const [result, setResult] = useState<FinishResult | null>(null);
   const [callResult, setCallResult] = useState<CallResult | null>(null);
   const [runKey, setRunKey] = useState(0);
+  const [scheduledCallPersonaId, setScheduledCallPersonaId] = useState<string | undefined>(undefined);
 
   return (
     <div className="min-h-[100svh] bg-white dark:bg-slate-900">
@@ -30,6 +31,7 @@ function App() {
           onStart={(id, cfg) => {
             setFlowId(id);
             setConfig(cfg);
+            setScheduledCallPersonaId(undefined);
             setRunKey((k) => k + 1);
             setScreen(isCallSim(id, cfg) ? 'call' : 'playing');
           }}
@@ -46,6 +48,11 @@ function App() {
             setResult(res);
             setScreen('results');
           }}
+          onScheduleCall={(personaId) => {
+            setScheduledCallPersonaId(personaId);
+            setRunKey((k) => k + 1);
+            setScreen('call');
+          }}
         />
       )}
 
@@ -53,6 +60,8 @@ function App() {
         <CallScreen
           key={runKey}
           difficulty={config.difficulty}
+          forcePersonaId={scheduledCallPersonaId}
+          forceBudget={scheduledCallPersonaId ? 'standard' : undefined}
           onExit={() => setScreen('setup')}
           onFinish={(res) => {
             setCallResult(res);

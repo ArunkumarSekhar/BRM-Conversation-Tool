@@ -8,7 +8,17 @@ import type {
   Quality,
 } from '../data/types';
 import { QUALITY_DELTA, OBJECTION_COUNT } from '../data/scoring';
-import { pickWeighted, sampleDistinct, shuffle } from './random';
+import { pickRandom, pickWeighted, sampleDistinct, shuffle } from './random';
+import { PARTNER_PERSONAS, type PartnerPersona } from '../data/partnersCall/persona';
+
+/** Partners entry scenarios where a 'continue' outcome means a call got scheduled —
+ * the player should walk into the real, clocked call simulation next, not the flat
+ * step-by-step engine. Their text uses {{contactName}}/{{orgName}} placeholders. */
+const SCHEDULES_CALL_SCENARIOS = new Set(['whatsapp-outreach', 'email-outreach']);
+
+function fillPersonaTokens(text: string, persona: PartnerPersona): string {
+  return text.replaceAll('{{contactName}}', persona.contactName).replaceAll('{{orgName}}', persona.orgName);
+}
 
 const DIRECT_OBJECTION_REACTIONS: Record<Quality, string[]> = {
   3: [
@@ -27,6 +37,20 @@ const DIRECT_OBJECTION_REACTIONS: Record<Quality, string[]> = {
     "I'm even less sure now, if I'm being honest.",
   ],
 };
+
+const DIRECT_PITCH_REACTIONS: string[] = [
+  "Okay, that's actually really interesting. Can I ask you something though?",
+  "Huh, okay — that's more structured than I expected. Can I ask something?",
+  "Okay wait, that sounds like a lot but also kind of cool. Quick question though —",
+  "Right, okay, that does sound like something I'd want to do. Can I ask —",
+];
+
+const PARTNERS_PITCH_REACTIONS: string[] = [
+  "Okay, that's a clear pitch, I'll give you that. I do have a question though.",
+  "Right, that tracks with what you said earlier. One thing I want to understand better —",
+  "Okay, I can see where this could fit. Before we go further, I do want to ask —",
+  "That's helpful context, thank you. There's something I want to raise though —",
+];
 
 const PARTNERS_OBJECTION_REACTIONS: Record<Quality, string[]> = {
   3: [
@@ -58,6 +82,9 @@ export type Step =
       reactions: Record<Quality, string>;
       endsRun: boolean;
       endText?: string;
+      /** set when a 'continue' outcome here means a call got scheduled — the
+       * UI should walk into the real clocked call simulation next, with this persona. */
+      scheduledCallPersonaId?: string;
     }
   | {
       kind: 'discovery';
@@ -70,6 +97,7 @@ export type Step =
       variant: PitchVariant;
       text: string;
       framingNote?: string;
+      afterReaction: string;
     }
   | {
       kind: 'objection';
@@ -112,9 +140,13 @@ export function buildRun(flow: FlowData, config: RunConfig): RunPlan {
   let maxRapport = 0;
   let endsEarly = false;
 
+  let skipGenericSteps = false;
+
   if (config.channel === 'online') {
     const scenarios = flow.entry[config.initiatedBy ?? 'us'];
     const scenario = scenarios.find((s) => s.id === config.scenarioId) ?? scenarios[0];
+    const schedulesCall = flow.id === 'partners' && SCHEDULES_CALL_SCENARIOS.has(scenario.id);
+    const callPersona = schedulesCall ? pickRandom(PARTNER_PERSONAS) : undefined;
 
     const continueBranches = scenario.branches.filter((b) => b.outcome.kind !== 'end');
     const endBranches = scenario.branches.filter((b) => b.outcome.kind === 'end');
@@ -127,20 +159,24 @@ export function buildRun(flow: FlowData, config: RunConfig): RunPlan {
     const branch = pickWeighted(pool, (b) => b.difficultyWeight[difficulty] || 1);
 
     const endsRun = branch.outcome.kind === 'end';
+    const willScheduleCall = schedulesCall && !endsRun;
+    const fill = (text: string) => (callPersona ? fillPersonaTokens(text, callPersona) : text);
     steps.push({
       kind: 'entry',
       progressLabel: 'Entry',
       scenarioLabel: scenario.label,
       context: scenario.context,
-      usOpening: scenario.usOpening,
-      themLine: branch.themLine,
-      options: shuffle(branch.options),
+      usOpening: fill(scenario.usOpening),
+      themLine: fill(branch.themLine),
+      options: shuffle(branch.options).map((o) => ({ ...o, text: fill(o.text) })),
       reactions: branch.reactions,
       endsRun,
       endText: branch.outcome.kind === 'end' ? branch.outcome.text : undefined,
+      scheduledCallPersonaId: willScheduleCall ? callPersona?.id : undefined,
     });
     maxRapport += bestDelta;
     endsEarly = endsRun;
+    skipGenericSteps = willScheduleCall;
   } else {
     const opening = flow.offlineOpenings.find((o) => o.id === config.offlineOpeningId) ?? flow.offlineOpenings[0];
     steps.push({
@@ -155,7 +191,7 @@ export function buildRun(flow: FlowData, config: RunConfig): RunPlan {
     });
   }
 
-  if (!endsEarly) {
+  if (!endsEarly && !skipGenericSteps) {
     // Discovery: pick which question to ask (scored by the row's priority), reveal a
     // difficulty-weighted random answer, and route to a pitch variant.
     const rowOptions = flow.discoveryRouting.map((row) => {
@@ -174,7 +210,14 @@ export function buildRun(flow: FlowData, config: RunConfig): RunPlan {
 
     // Pitch variant/text gets resolved by the UI once the player picks a discovery question;
     // this placeholder is overwritten at render time using that choice.
-    steps.push({ kind: 'pitch', progressLabel: 'Pitch', variant: 'short', text: flow.library.pitches.short.text });
+    const pitchReactionPool = flow.id === 'partners' ? PARTNERS_PITCH_REACTIONS : DIRECT_PITCH_REACTIONS;
+    steps.push({
+      kind: 'pitch',
+      progressLabel: 'Pitch',
+      variant: 'short',
+      text: flow.library.pitches.short.text,
+      afterReaction: pickRandom(pitchReactionPool),
+    });
 
     const objectionCount = Math.min(OBJECTION_COUNT[difficulty], flow.library.objections.length);
     const chosenObjections = sampleDistinct(flow.library.objections, objectionCount);

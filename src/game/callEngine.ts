@@ -128,7 +128,7 @@ export function createCall(config: CallConfig): CallState {
     line(
       state,
       'coach',
-      `${persona.orgName} — ${persona.sector}. You're speaking to their ${persona.contactRole}. That's all you know going in; everything else you'll have to ask for.`,
+      `${persona.orgName} — ${persona.sector}. You're speaking to ${persona.contactName}, their ${persona.contactRole}. That's all you know going in; everything else you'll have to ask for.`,
     ),
   );
 

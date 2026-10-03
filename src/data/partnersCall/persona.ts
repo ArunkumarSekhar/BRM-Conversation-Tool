@@ -18,6 +18,8 @@ export interface PartnerPersona {
   orgName: string;
   sector: string;
   contactRole: string;
+  /** First name of the person you're actually talking to. */
+  contactName: string;
 
   /** Hidden until discovered through phase-4 questions. */
   volunteerCount: number;
@@ -43,6 +45,7 @@ export const PARTNER_PERSONAS: PartnerPersona[] = [
     orgName: 'Saathi Foundation',
     sector: 'after-school education, M-East ward',
     contactRole: 'Volunteer Coordinator',
+    contactName: 'Noor',
     volunteerCount: 8,
     cadence: 'seasonal',
     hasTraining: false,
@@ -69,6 +72,7 @@ export const PARTNER_PERSONAS: PartnerPersona[] = [
     orgName: 'Ujjwal Collective',
     sector: 'urban sanitation and waste, city-wide',
     contactRole: 'Programs Manager',
+    contactName: 'Karthik',
     volunteerCount: 120,
     cadence: 'year-round',
     hasTraining: true,
@@ -96,6 +100,7 @@ export const PARTNER_PERSONAS: PartnerPersona[] = [
     orgName: 'Pragati Youth Network',
     sector: 'livelihoods and skilling, eastern suburbs',
     contactRole: 'Head of Community',
+    contactName: 'Neha',
     volunteerCount: 35,
     cadence: 'year-round',
     hasTraining: false,
@@ -121,6 +126,7 @@ export const PARTNER_PERSONAS: PartnerPersona[] = [
     orgName: 'Meher Trust',
     sector: 'child nutrition and health, Dharavi',
     contactRole: 'Volunteer Lead',
+    contactName: 'Arjun',
     volunteerCount: 12,
     cadence: 'seasonal',
     hasTraining: true,
@@ -149,6 +155,7 @@ export const PARTNER_PERSONAS: PartnerPersona[] = [
     orgName: 'Aarambh Mumbai',
     sector: 'civic tech and open data',
     contactRole: 'Director of Programs',
+    contactName: 'Sana',
     volunteerCount: 200,
     cadence: 'year-round',
     hasTraining: true,
@@ -175,6 +182,7 @@ export const PARTNER_PERSONAS: PartnerPersona[] = [
     orgName: 'Gyanshala Quality Collective',
     sector: 'school quality review and assessor training',
     contactRole: 'Programs Lead',
+    contactName: 'Devika',
     volunteerCount: 18,
     cadence: 'year-round',
     hasTraining: true,
@@ -199,6 +207,7 @@ export const PARTNER_PERSONAS: PartnerPersona[] = [
     orgName: 'Manan Community Space',
     sector: 'community mental health — a peer-support centre and therapy clinic',
     contactRole: 'Community Programs Coordinator',
+    contactName: 'Farah',
     volunteerCount: 22,
     cadence: 'year-round',
     hasTraining: true,
@@ -225,6 +234,7 @@ export const PARTNER_PERSONAS: PartnerPersona[] = [
     orgName: 'Disha Alumni Network',
     sector: 'alumni engagement for a network of low-income community schools',
     contactRole: 'Alumni Engagement Manager',
+    contactName: 'Varun',
     volunteerCount: 40,
     cadence: 'year-round',
     hasTraining: false,
@@ -250,6 +260,7 @@ export const PARTNER_PERSONAS: PartnerPersona[] = [
     orgName: 'Samaanta Collective',
     sector: 'gender equity and civic organising across colleges',
     contactRole: 'Program Director',
+    contactName: 'Kavya',
     volunteerCount: 30,
     cadence: 'year-round',
     hasTraining: true,
@@ -276,6 +287,7 @@ export const PARTNER_PERSONAS: PartnerPersona[] = [
     orgName: 'Jeevan Sahayog Sangh',
     sector: 'multi-decade grassroots community development — health, education, livelihoods, advocacy',
     contactRole: 'Senior Programme Officer',
+    contactName: 'Suresh',
     volunteerCount: 15,
     cadence: 'seasonal',
     hasTraining: true,
@@ -302,6 +314,7 @@ export const PARTNER_PERSONAS: PartnerPersona[] = [
     orgName: 'GreenLoop Sustainability Partners',
     sector: 'corporate sustainability consulting — carbon audits, emissions work',
     contactRole: 'Partnerships Manager',
+    contactName: 'Nikhil',
     volunteerCount: 3,
     cadence: 'year-round',
     hasTraining: false,
